@@ -1,66 +1,52 @@
-`timescale 1ns/10ps
-
 module uart_tb ();
 // parameter //
-parameter T               = 20;                  // a FPGA clock period
-parameter SYS_PERIOD      = 100_000_000;         // system clock frequency
-parameter BPS 		      = 115_200;             // uart transmition velocity
-parameter HALF_BIT_PERIOD = SYS_PERIOD/BPS/2*T;
+parameter CLK_PERIOD = 10;
 // register defination //
-reg         clk     ;
-reg         rst_n   ;
-reg         uart_rxd;
+reg sys_clk  ;
+reg sys_rst_n;
+reg uart_rxd ;
 // wire defination //
-wire        uart_txd;
-//  //
-integer i;
-// simulation //
+wire uart_txd;
+// sim //
+// tx 8'h55 : 8'b01010101
 initial begin
-    for(i=0; i<=60000; i=i+1) begin
-        #10 clk = ~clk;
-    end
+    sys_clk   <= 1'b0;
+    sys_rst_n <= 1'b0;
+    uart_rxd  <= 1'b1;
+    #200;
+    sys_rst_n <= ~sys_rst_n;
+    #1000;
+    uart_rxd <= 1'b0; // start
+    #8680;
+    uart_rxd <= 1'b1; // D0
+    #8680;
+    uart_rxd <= 1'b0; // D1
+    #8680;
+    uart_rxd <= 1'b1; // D2
+    #8680;
+    uart_rxd <= 1'b0; // D3
+    #8680;
+    uart_rxd <= 1'b1; // D4
+    #8680;
+    uart_rxd <= 1'b0; // D5
+    #8680;
+    uart_rxd <= 1'b1; // D6
+    #8680;
+    uart_rxd <= 1'b0; // D7
+    #8680;
+    uart_rxd <= 1'b1; // stop
+    #8680;
+    uart_rxd <= 1'b1; // unable
+    #300000;
+    $finish;
 end
-initial begin
-    clk          = 1'b0;
-    rst_n        = 1'b0;
-    #(T*3) rst_n = 1'b1;
-end
-initial begin
-    uart_rxd = 1'b1; 
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //start
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //bit 0
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 1
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 2
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 3
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 4
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 5
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //bit 6
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 7
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //over
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //start
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //bit 0
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //bit 1
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //bit 2
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //bit 3
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 4
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 5
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 6
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b0; //bit 7
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1; //over
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-    #(HALF_BIT_PERIOD*2) uart_rxd = 1'b1;
-end
-uart uart(
-    .clk      ( clk      ),
-    .rst_n    ( rst_n    ),
-    .uart_rxd ( uart_rxd ),
-    .uart_txd ( uart_txd ) 
+always #(CLK_PERIOD/2) sys_clk = ~sys_clk;
+// module //
+uart uart (
+    .sys_clk   ( sys_clk   ),
+    .sys_rst_n ( sys_rst_n ),
+    .uart_rxd  ( uart_rxd  ),
+    .uart_txd  ( uart_txd  ) 
 );
+
 endmodule
