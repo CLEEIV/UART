@@ -1,37 +1,36 @@
 module uart (
-    input  clk     ,
-    input  rst_n   ,
-    input  uart_rxd,
-    output uart_txd 
+    input  sys_clk  ,
+    input  sys_rst_n,
+    input  uart_rxd ,
+    output uart_txd  
 );
 // parameter //
-parameter SYS_PERIOD      = 100_000_000;
-parameter BPS             = 115_200;
-parameter HALF_BIT_PERIOD = SYS_PERIOD/BPS/2;
+parameter CLK_FREQ     = 100_000_000;
+parameter UART_BPS     = 115_200    ;
 // wire defination //
-wire       receive_done;
-wire [7:0] data_receive;
+wire       uart_rx_done;
+wire [7:0] uart_rx_data;
 // module //
-uart_receiver #(
-    .SYS_PERIOD      ( SYS_PERIOD      ),
-    .BPS             ( BPS             ),
-    .HALF_BIT_PERIOD ( HALF_BIT_PERIOD ) 
-) uart_receiver (
-    .clk          ( clk          ),
-    .rst_n        ( rst_n        ),
+uart_rx #(
+    .CLK_FREQ ( CLK_FREQ ),
+    .UART_BPS ( UART_BPS ) 
+) uart_rx (
+    .clk          ( sys_clk      ),
+    .rst_n        ( sys_rst_n    ),
     .uart_rxd     ( uart_rxd     ),
-    .receive_done ( receive_done ),
-    .data_receive ( data_receive ) 
+    .uart_rx_done ( uart_rx_done ),
+    .uart_rx_data ( uart_rx_data ) 
 );
-uart_transmitter #(
-    .SYS_PERIOD      ( SYS_PERIOD      ),
-    .BPS             ( BPS             ),
-    .HALF_BIT_PERIOD ( HALF_BIT_PERIOD ) 
-) uart_transmitter (
-    .clk          ( clk          ),
-    .rst_n        ( rst_n        ),
-    .receive_done ( receive_done ),
-    .data_receive ( data_receive ),
-    .uart_txd     ( uart_txd     ) 
+uart_tx #(
+    .CLK_FREQ ( CLK_FREQ ),
+    .UART_BPS ( UART_BPS ) 
+) uart_tx (
+    .clk          ( sys_clk      ),
+    .rst_n        ( sys_rst_n    ),
+    .uart_tx_en   ( uart_rx_done ),
+    .uart_tx_data ( uart_rx_data ),
+    .uart_txd     ( uart_txd     ),
+    .uart_tx_busy (              ) 
 );
+
 endmodule
